@@ -1,42 +1,125 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import "../styles/bootstrap.css";
 
 const Bootstrap = () => {
-
-  const [githubAccessToken, setGithubAccessToken] = useState('');
+  const [githubAccessToken, setGithubAccessToken] = useState("");
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
-    orgId: '',
-    billingAccount: '',
-    billingProject: '',
-    emailDomain: '',
-    parentFolderID: '',
-    gitOrgName: '',
-    bootstrapRepo: '',
-    organizationRepo: '',
-    enviornmentsRepo: '',
-    networksRepo: '',
-    projectsRepo: ''
+    orgId: "",
+    billingAccount: "",
+    billingProject: "",
+    emailDomain: "",
+    parentFolderID: "",
+    gitOrgName: "",
+    bootstrapRepo: "",
+    organizationRepo: "",
+    environmentsRepo: "",
+    networksRepo: "",
+    projectsRepo: "",
   });
 
   const fields = [
-    { label: 'Organization ID', name: 'orgId', required: true },
-    { label: 'Billing Account', name: 'billingAccount', required: true },
-    { label: 'Billing Project', name: 'billingProject', required: true },
-    { label: 'Email Domain', name: 'emailDomain', required: true },
-    { label: 'Parent Folder ID', name: 'parentFolderID', required: true },
-    { label: 'Github Organization Name', name: 'gitOrgName', required: true },
-    { label: 'Bootstrap Repository Name', name: 'bootstrapRepo', required: true },
-    { label: 'Organization Repository Name', name: 'organizationRepo', required: true },
-    { label: 'Environments Repository Name', name: 'enviornmentsRepo', required: true },
-    { label: 'Networks Repository Name', name: 'networksRepo', required: true },
-    { label: 'Projects Repository Name', name: 'projectsRepo', required: true }
+    {
+      label: "Organization ID",
+      name: "orgId",
+      placeholdertext: "000000000000",
+      description: "Unique Organization ID of your organization in GCP",
+      pattern: /^\d+$/,
+      errorMsg: "Org ID must be digits only.",
+    },
+    {
+      label: "Billing Account",
+      name: "billingAccount",
+      placeholdertext: "XXXXXX-XXXXXX-XXXXXX",
+      description: "Billing account number in format XXXXXX-XXXXXX-XXXXXX",
+      pattern: /^[A-Z0-9]{6}-[A-Z0-9]{6}-[A-Z0-9]{6}$/,
+      errorMsg: "Billing Account must be in the format XXXXXX-XXXXXX-XXXXXX (uppercase letters, numbers, and dashes).",
+    },
+    {
+      label: "Billing Project ID",
+      name: "billingProject",
+      placeholdertext: "my-first-project",
+      description: "Project ID where you want to create groups",
+      required: true,
+      errorMsg: "Billing Project ID is required.",
+    },
+    {
+      label: "Email Domain",
+      name: "emailDomain",
+      placeholdertext: "example.com",
+      description: "Email domain for your groups. Do not include @",
+      pattern: /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      errorMsg: "Enter a valid domain (example.com, google.org, etc.), do not include '@'.",
+    },
+    {
+      label: "Parent Folder ID",
+      name: "parentFolderID",
+      placeholdertext: "000000000000",
+      description: "Folder where you want to create required folders and projects",
+      pattern: /^\d+$/,
+      errorMsg: "Parent Folder ID must be digits only.",
+    },
+    {
+      label: "GitHub Organization Name",
+      name: "gitOrgName",
+      placeholdertext: "myorg",
+      description: "Name of the organization in GitHub",
+      pattern: /^[a-zA-Z0-9-]+$/,
+      errorMsg: "GitHub Org Name should contain only letters, numbers, and hyphens.",
+    },
+    {
+      label: "Bootstrap Repository Name",
+      name: "bootstrapRepo",
+      placeholdertext: "gcp-bootstrap",
+      description: "Repository name in GitHub (not the full URL)",
+      pattern: /^[a-zA-Z0-9-]+$/,
+      errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
+    },
+    {
+      label: "Organization Repository Name",
+      name: "organizationRepo",
+      placeholdertext: "gcp-organization",
+      description: "Repository name in GitHub (not the full URL)",
+      pattern: /^[a-zA-Z0-9-]+$/,
+      errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
+    },
+    {
+      label: "Environments Repository Name",
+      name: "environmentsRepo",
+      placeholdertext: "gcp-environments",
+      description: "Repository name in GitHub (not the full URL)",
+      pattern: /^[a-zA-Z0-9-]+$/,
+      errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
+    },
+    {
+      label: "Networks Repository Name",
+      name: "networksRepo",
+      placeholdertext: "gcp-networks",
+      description: "Repository name in GitHub (not the full URL)",
+      pattern: /^[a-zA-Z0-9-]+$/,
+      errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
+    },
+    {
+      label: "Projects Repository Name",
+      name: "projectsRepo",
+      placeholdertext: "gcp-projects",
+      description: "Repository name in GitHub (not the full URL)",
+      pattern: /^[a-zA-Z0-9-]+$/,
+      errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
+    },
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value
+      [name]: value,
+    }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
     }));
   };
 
@@ -44,45 +127,80 @@ const Bootstrap = () => {
     setGithubAccessToken(e.target.value);
   };
 
+  const validateForm = () => {
+    let valid = true;
+    let newErrors = {};
+
+    fields.forEach((field) => {
+      if (field.required && !formData[field.name]) {
+        newErrors[field.name] = field.errorMsg || "This field is required.";
+        valid = false;
+      }
+      if (field.pattern && !field.pattern.test(formData[field.name])) {
+        newErrors[field.name] = field.errorMsg;
+        valid = false;
+      }
+    });
+
+    setErrors(newErrors);
+    return valid;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form Data:', formData);
-    console.log('GitHub Access Token:', githubAccessToken);
 
+    if (!validateForm()) {
+      console.log("Form contains errors.");
+      return;
+    }
+
+    console.log("Form Data:", formData);
+    console.log("GitHub Access Token:", githubAccessToken);
   };
 
   return (
-    <div>
+    <div className="bootstrap-container">
       <strong>Step 1: Bootstrap</strong>
       <form onSubmit={handleSubmit}>
         {fields.map((field) => (
           <div key={field.name}>
             <label>
-              {field.label}:
+              <div className="containerHeading">
+                {field.label}
+                <span className="tooltip">
+                  <i className="material-icons tooltip-icon">info</i>
+                  {field.description && <span className="tooltip-text">{field.description}</span>}
+                </span>
+              </div>
               <input
                 type="text"
                 name={field.name}
                 value={formData[field.name]}
                 onChange={handleChange}
-                required={field.required}
+                placeholder={field.placeholdertext}
               />
+              {errors[field.name] && <p className="error-message">Error: {errors[field.name]}</p>}
             </label>
           </div>
         ))}
-        
+
         <div>
           <label>
-            GitHub Access Token:
-            <input
-              type="text"
-              value={githubAccessToken}
-              onChange={handleTokenChange}
-              required
-            />
+            <div className="containerHeading">
+              GitHub Access Token
+              <span className="tooltip">
+                <i className="material-icons tooltip-icon">info</i>
+                <span className="tooltip-text">A fine-grained token with access to all above Repositories and with following Permissions: Actions: Read and Write
+                            ,Metadata: Read-only
+                            ,Secrets: Read and Write
+                            ,Variables: Read and Write
+                            ,Workflows: Read and Write</span>
+              </span>
+            </div>
+            <input type="text" value={githubAccessToken} onChange={handleTokenChange} required />
           </label>
         </div>
-        
+
         <button type="submit">Submit</button>
       </form>
     </div>
