@@ -15,10 +15,33 @@ function App() {
     }
   };
 
-  const validateKey = () => {
-    // Logic to send file to backend for validation 
-    set_saKey_authenticated(true);
+  const validateKey = async () => {
+    if (!service_account_key) return;
+  
+    const formData = new FormData();
+    formData.append("file", service_account_key);
+  
+    try {
+      const response = await fetch("http://localhost:5000/validate", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Validation successful:", data);
+        set_saKey_authenticated(true);  
+      } else {
+        console.log("Authentication failed");
+        console.log(response.message);
+        set_saKey_authenticated(false);
+      }
+    } catch (err) {
+      console.log("Error:", err);
+      set_saKey_authenticated(false);
+    }
   };
+  
 
   return (
     <>

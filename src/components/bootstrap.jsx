@@ -4,6 +4,7 @@ import "../styles/bootstrap.css";
 const Bootstrap = () => {
   const [githubAccessToken, setGithubAccessToken] = useState("");
   const [errors, setErrors] = useState({});
+  const [updates, setUpdates] = useState([]);
 
   const [formData, setFormData] = useState({
     orgId: "",
@@ -146,7 +147,7 @@ const Bootstrap = () => {
     return valid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -154,8 +155,45 @@ const Bootstrap = () => {
       return;
     }
 
-    console.log("Form Data:", formData);
-    console.log("GitHub Access Token:", githubAccessToken);
+    const payload = {
+      ...formData, 
+      githubAccessToken, 
+    };
+
+    const eventSource = new EventSource(`http://localhost:5000/bootstrap-stream`);
+
+    eventSource.onmessage = function (event) {
+      console.log("Update:", event.data);
+      setUpdates(() => [event.data]);
+
+      if (event.data.includes("Process completed successfully!")) {
+        eventSource.close();
+      }
+    };
+
+    eventSource.onerror = function (event) {
+      console.error("EventSource failed:", event);
+      eventSource.close();
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/bootstrap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to start the process:", response.statusText);
+      }else{
+        const data = await response.json();
+        console.log('here is the message : ',data.message)
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
   };
 
   return (
@@ -199,6 +237,13 @@ const Bootstrap = () => {
             </div>
             <input type="text" value={githubAccessToken} onChange={handleTokenChange} required />
           </label>
+        </div>
+
+        <div id="updates">
+          <h3>Updates:</h3>
+          {updates.map((update, index) => (
+            <p key={index}>{update}</p>
+          ))}
         </div>
 
         <button type="submit">Submit</button>
