@@ -3,6 +3,7 @@ import "../styles/bootstrap.css";
 
 const Bootstrap = () => {
   const [githubAccessToken, setGithubAccessToken] = useState("");
+  const [githubAccessTokenForBackend,setGithubAccessTokenForBackend]= useState("");
   const [errors, setErrors] = useState({});
   const [updates, setUpdates] = useState([]);
 
@@ -127,6 +128,9 @@ const Bootstrap = () => {
   const handleTokenChange = (e) => {
     setGithubAccessToken(e.target.value);
   };
+  const handleTokenChangeForBackend = (e)=>{
+    setGithubAccessTokenForBackend(e.target.value);
+  }
 
   const validateForm = () => {
     let valid = true;
@@ -150,14 +154,15 @@ const Bootstrap = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      console.log("Form contains errors.");
-      return;
-    }
+    // if (!validateForm()) {
+    //   console.log("Form contains errors.");
+    //   return;
+    // }
 
     const payload = {
       ...formData, 
-      githubAccessToken, 
+      githubAccessToken,
+      githubAccessTokenForBackend 
     };
 
     const eventSource = new EventSource(`http://localhost:5000/bootstrap-stream`);
@@ -225,7 +230,7 @@ const Bootstrap = () => {
         <div>
           <label>
             <div className="containerHeading">
-              GitHub Access Token
+              GitHub Access Token 1
               <span className="tooltip">
                 <i className="material-icons tooltip-icon">info</i>
                 <span className="tooltip-text">A fine-grained token with access to all above Repositories and with following Permissions: Actions: Read and Write
@@ -236,6 +241,19 @@ const Bootstrap = () => {
               </span>
             </div>
             <input type="text" value={githubAccessToken} onChange={handleTokenChange} required />
+          </label>
+          <label>
+            <div className="containerHeading">
+              GitHub Access Token 2
+              <span className="tooltip">
+                <i className="material-icons tooltip-icon">info</i>
+                <span className="tooltip-text">A fine-grained token with access to all above Repositories and with following Permissions: Actions: Read only
+                            ,Metadata: Read-only
+                            ,Contents: Read and Write
+                            ,Pull Requests: Read and Write</span>
+              </span>
+            </div>
+            <input type="text" value={githubAccessTokenForBackend} onChange={handleTokenChangeForBackend} required />
           </label>
         </div>
 
