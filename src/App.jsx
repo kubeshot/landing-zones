@@ -22,7 +22,7 @@ function App() {
     formData.append("file", service_account_key);
   
     try {
-      const response = await fetch("http://localhost:5000/validate", {
+      const response = await fetch("http://localhost:5001/validate", {
         method: "POST",
         body: formData,
       });
@@ -33,7 +33,8 @@ function App() {
         set_saKey_authenticated(true);  
       } else {
         console.log("Authentication failed");
-        console.log(response.message);
+        const data = await response.json();
+        console.log('Error: ',data.error)
         set_saKey_authenticated(false);
       }
     } catch (err) {

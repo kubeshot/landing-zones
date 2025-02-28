@@ -75,7 +75,7 @@ const Bootstrap = () => {
       name: "bootstrapRepo",
       placeholdertext: "gcp-bootstrap",
       description: "Repository name in GitHub (not the full URL)",
-      pattern: /^[a-zA-Z0-9-]+$/,
+      pattern: /^[a-zA-Z0-9-_]+$/,
       errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
     },
     {
@@ -83,7 +83,7 @@ const Bootstrap = () => {
       name: "organizationRepo",
       placeholdertext: "gcp-organization",
       description: "Repository name in GitHub (not the full URL)",
-      pattern: /^[a-zA-Z0-9-]+$/,
+      pattern: /^[a-zA-Z0-9-_]+$/,
       errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
     },
     {
@@ -91,7 +91,7 @@ const Bootstrap = () => {
       name: "environmentsRepo",
       placeholdertext: "gcp-environments",
       description: "Repository name in GitHub (not the full URL)",
-      pattern: /^[a-zA-Z0-9-]+$/,
+      pattern: /^[a-zA-Z0-9-_]+$/,
       errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
     },
     {
@@ -99,7 +99,7 @@ const Bootstrap = () => {
       name: "networksRepo",
       placeholdertext: "gcp-networks",
       description: "Repository name in GitHub (not the full URL)",
-      pattern: /^[a-zA-Z0-9-]+$/,
+      pattern: /^[a-zA-Z0-9-_]+$/,
       errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
     },
     {
@@ -107,7 +107,7 @@ const Bootstrap = () => {
       name: "projectsRepo",
       placeholdertext: "gcp-projects",
       description: "Repository name in GitHub (not the full URL)",
-      pattern: /^[a-zA-Z0-9-]+$/,
+      pattern: /^[a-zA-Z0-9-_]+$/,
       errorMsg: "Repo name should contain only letters, numbers, and hyphens.",
     },
   ];
@@ -154,10 +154,10 @@ const Bootstrap = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // if (!validateForm()) {
-    //   console.log("Form contains errors.");
-    //   return;
-    // }
+    if (!validateForm()) {
+      console.log("Form contains errors.");
+      return;
+    }
 
     const payload = {
       ...formData, 
@@ -165,7 +165,7 @@ const Bootstrap = () => {
       githubAccessTokenForBackend 
     };
 
-    const eventSource = new EventSource(`http://localhost:5000/bootstrap-stream`);
+    const eventSource = new EventSource(`http://localhost:5001/bootstrap-stream`);
 
     eventSource.onmessage = function (event) {
       console.log("Update:", event.data);
@@ -182,7 +182,7 @@ const Bootstrap = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/bootstrap', {
+      const response = await fetch('http://localhost:5001/bootstrap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', 
@@ -200,6 +200,46 @@ const Bootstrap = () => {
       console.error("Error:", err);
     }
   };
+
+  const callDownloadplan = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/bootstrap/downloadplan', {
+        method: 'GET',
+      });
+  
+      if (response.ok) {
+        const blob = await response.blob();
+  
+        const url = window.URL.createObjectURL(blob);
+  
+        const a = document.createElement('a');
+        a.href = url;
+  
+        a.download = 'bootstrap_plan.json'; 
+  
+        document.body.appendChild(a);
+  
+        a.click();
+  
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+  
+        console.log('Download initiated');
+      } else {
+        console.error('Failed to call the API');
+      }
+    } catch (error) {
+      console.error('Error calling the API:', error);
+    }
+  };
+
+  const applyBootstrapPlan = async()=>{
+    try{
+
+    }catch(err){
+      console.log('error: ',err)
+    }
+  }
 
   return (
     <div className="bootstrap-container">
@@ -258,12 +298,44 @@ const Bootstrap = () => {
         </div>
 
         <div id="updates">
-          <h3>Updates:</h3>
-          {updates.map((update, index) => (
-            <p key={index}>{update}</p>
-          ))}
-        </div>
-
+            <h3>Updates:</h3>
+            {updates.map((update, index) => (
+              <div key={index}>
+                <p>{update}</p>
+                {update === "Plan has been generated" && (
+                  <div>
+                    <p>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          callDownloadplan();
+                        }}
+                      >
+                        Click here to download
+                      </a>
+                    </p>
+                    <div >
+                      <button
+                        onClick={() => {
+                          applyBootstrapPlan();
+                        }}
+                      >
+                        Continue
+                      </button>
+                      <button
+                        onClick={() => {
+                          console.log('plan canceled');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         <button type="submit">Submit</button>
       </form>
     </div>
