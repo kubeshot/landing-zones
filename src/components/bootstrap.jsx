@@ -189,15 +189,20 @@ const Bootstrap = () => {
         },
         body: JSON.stringify(payload),
       });
-
+    
+      const data = await response.json().catch(() => null); // Handle cases where response is not JSON
+    
       if (!response.ok) {
-        console.error("Failed to start the process:", response.statusText);
-      }else{
-        const data = await response.json();
-        console.log('here is the message : ',data.message)
+        const errorMessage = data?.message || `Error ${response.status}: ${response.statusText}`;
+        console.error("Failed to start the process:", errorMessage);
+        console.log(`Error: ${errorMessage}`);
+      } else {
+        console.log('Process started successfully:', data.message);
+        console.log(`Success: ${data.message}`);
       }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Request failed:", err.message);
+      console.log(`Request failed: ${err.message}`);
     }
   };
 
@@ -233,13 +238,29 @@ const Bootstrap = () => {
     }
   };
 
-  const applyBootstrapPlan = async()=>{
-    try{
-
-    }catch(err){
-      console.log('error: ',err)
+  const applyBootstrapPlan = async () => {
+    try {
+      const response = await fetch("http://localhost:5001/bootstrap/apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        const errorMessage = data?.message || `Error ${response.status}: ${response.statusText}`;
+        console.error("Failed to start the process:", errorMessage);
+        console.log(`Error: ${errorMessage}`);
+      } else {
+        console.log('Process started successfully:', data.message);
+        console.log(`Success: ${data.message}`);
+      }
+    } catch (err) {
+      console.error("Request failed:", err.message);
     }
-  }
+  };
 
   return (
     <div className="bootstrap-container">
@@ -317,11 +338,13 @@ const Bootstrap = () => {
                     </p>
                     <div >
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          console.log('applying the plan')
                           applyBootstrapPlan();
                         }}
                       >
-                        Continue
+                        Apply Plan
                       </button>
                       <button
                         onClick={() => {
