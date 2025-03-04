@@ -190,7 +190,7 @@ const Bootstrap = () => {
         body: JSON.stringify(payload),
       });
     
-      const data = await response.json().catch(() => null); // Handle cases where response is not JSON
+      const data = await response.json().catch(() => null); 
     
       if (!response.ok) {
         const errorMessage = data?.message || `Error ${response.status}: ${response.statusText}`;
@@ -237,6 +237,54 @@ const Bootstrap = () => {
       console.error('Error calling the API:', error);
     }
   };
+
+  const callDestroyBootstrap = async (e)=>{
+    e.preventDefault();
+
+    const payload = {
+      ...formData, 
+      githubAccessToken,
+      githubAccessTokenForBackend 
+    };
+
+    const eventSource = new EventSource(`http://localhost:5001/bootstrap-stream`);
+
+    eventSource.onmessage = function (event) {
+      console.log("Update:", event.data);
+      setUpdates(() => [event.data]);
+
+      if (event.data.includes("Process completed successfully!")) {
+        eventSource.close();
+      }
+    };
+
+    eventSource.onerror = function (event) {
+      console.error("EventSource failed:", event);
+      eventSource.close();
+    }
+    try {
+      const response = await fetch("http://localhost:5001/bootstrap/destroy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        const errorMessage = data?.message || `Error ${response.status}: ${response.statusText}`;
+        console.error("Failed to start the process:", errorMessage);
+        console.log(`Error: ${errorMessage}`);
+      } else {
+        console.log('Process started successfully:', data.message);
+        console.log(`Success: ${data.message}`);
+      }
+    } catch (err) {
+      console.error("Request failed:", err.message);
+    }
+  }
 
   const applyBootstrapPlan = async () => {
     try {
@@ -360,6 +408,7 @@ const Bootstrap = () => {
             ))}
           </div>
         <button type="submit">Submit</button>
+        <button onClick={(e)=>callDestroyBootstrap(e)}> Destroy Infrastructure</button>
       </form>
     </div>
   );
